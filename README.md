@@ -1,10 +1,56 @@
 # FORGE
 
-Minimal implementation of training-time semantic reward guidance for UAV
-swarm communication. The decentralized actor receives local observations;
-the return and risk critics receive centralized state during training.
-Retrieved semantic records contribute a bounded reward bonus. Deployment
-loads only the actor checkpoint.
+Code for **Real-Time and Risk-Aware UAV Swarm Coordination at the Web Edge:
+Distilling Offline Semantic Reasoning into Decentralized Policies**.
+
+FORGE brings trajectory-derived semantic guidance into multi-agent policy
+learning without placing a language model on the real-time control path.
+The framework is instantiated with MAPPO for cooperative packet routing
+and transmit-power allocation in UAV swarm communication.
+
+## Research overview
+
+UAV swarms can provide mobile relay and gateway infrastructure for
+Web-connected sensing and latency-sensitive services. Their controllers
+must coordinate traffic and power under changing link quality, traffic
+pressure, and delivery deadlines. A locally attractive allocation can
+create congestion and delayed failures that are difficult to attribute
+to individual decisions.
+
+Our paper investigates whether semantic descriptions of past trajectories
+can improve this learning process while preserving lightweight decentralized
+execution. FORGE uses an offline language-model writer to organize selected
+trajectories into structured records of state patterns, outcomes, and
+allocation recommendations. During training, relevant records define a
+bounded semantic reward bonus; an auxiliary risk critic estimates future
+deadline-exceedance severity. The resulting optimization signals influence
+the learned policy through MAPPO updates.
+
+The key distinction is where semantic knowledge is used: **memory shapes
+the training reward, not the actor input or the executed action**. After
+training, each UAV acts from its local observation using only the frozen
+actor. No LLM, memory bank, retrieval index, or centralized critic is
+required at deployment.
+
+## Method at a glance
+
+1. **Translate trajectories.** Express link quality, traffic pressure, and
+   deadline conditions as compact semantic descriptions.
+2. **Write and validate records.** Use a local Qwen writer or the template
+   backend to produce structured recommendations; reject invalid schemas
+   and exclude low-confidence records from guidance.
+3. **Retrieve training context.** Match records using semantic similarity,
+   constraint-tag overlap, and an age penalty.
+4. **Guide policy optimization.** Compare sampled packet/power allocations
+   with the retrieved reference to compute a bounded reward bonus, then
+   update the observation-only actor and centralized training critics.
+5. **Deploy the actor alone.** Load the actor checkpoint and generate feasible
+   packet and power allocations directly from local observations.
+
+The implementation supports FORGE, a no-risk ablation, and a MAPPO control,
+as well as configurable semantic reward strength and held-out actor-only
+evaluation. Training traces retain the retrieved record IDs and reward
+components so that semantic guidance can be inspected.
 
 ## Install
 
